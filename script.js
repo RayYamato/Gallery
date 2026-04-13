@@ -58,7 +58,7 @@ async function loadImages() {
         });
     } catch (error) {
         console.error("Lỗi tải ảnh:", error);
-        gallery.innerHTML = "<p>Không tải được ảnh từ GitHub.</p>";
+        gallery.innerHTML = "<p>Không tải được ảnh.</p>";
     }
 }
 
