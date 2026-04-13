@@ -53,7 +53,7 @@ videoUploadBtn.addEventListener("click", async () => {
             } else {
                 console.error(result);
                 videoStatus.textContent =
-                    "Upload thất bại: " +
+                    "Upload thất bại, video quá nặng: " +
                     (result.message || "Lỗi không xác định");
             }
         } catch (error) {
