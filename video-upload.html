@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đóng góp video</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Thanh trên cùng (giống các trang khác) -->
+  <div class="topbar">
+    <a href="video.html" class="upload-btn">← Quay về Gallery Video</a>
+  </div>
+
+  <div class="upload-page">
+    <h2>Đóng góp thêm video</h2>
+    
+    <div style="margin: 30px 0;">
+      <input type="file" id="videoUploadInput" accept="video/*" style="display: none;">
+      
+      <!-- Nút chọn file đẹp hơn -->
+      <button id="selectFileBtn" class="upload-btn" style="padding: 14px 24px; font-size: 16px; margin-bottom: 15px;">
+        📁 Chọn file video
+      </button>
+      
+      <!-- Hiển thị tên file đã chọn -->
+      <div id="fileNameDisplay" style="margin: 15px 0; min-height: 24px; color: #aaa; font-size: 15px;"></div>
+    </div>
+
+    <button id="videoUploadBtn" class="upload-btn" style="padding: 14px 32px; font-size: 17px; background: #0a84ff; border: none;">
+      ⬆️ Tải video lên Gallery
+    </button>
+
+    <p id="videoStatus"></p>
+  </div>
+
+  <script src="video-upload.js"></script>
+
+  <script>
+    // Script nhỏ hỗ trợ click nút chọn file (vì input bị ẩn)
+    document.getElementById('selectFileBtn').addEventListener('click', () => {
+      document.getElementById('videoUploadInput').click();
+    });
+
+    // Hiển thị tên file khi người dùng chọn
+    document.getElementById('videoUploadInput').addEventListener('change', function() {
+      const fileNameDisplay = document.getElementById('fileNameDisplay');
+      if (this.files.length > 0) {
+        fileNameDisplay.textContent = `Đã chọn: ${this.files[0].name}`;
+        fileNameDisplay.style.color = '#4ade80';
+      } else {
+        fileNameDisplay.textContent = '';
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,122 @@
+body{
+    margin:0;
+    padding:20px;
+    font-family:Arial,sans-serif;
+    background:#121212;
+    color:#ffffff;
+    -webkit-user-select:none;
+    user-select:none;
+}
+
+/* thanh trên */
+.topbar{
+    padding:16px 20px;
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+/* nút */
+.upload-btn{
+    text-decoration:none;
+    padding:10px 16px;
+    border-radius:10px;
+    background:#1e1e1e;
+    border:1px solid #333;
+    color:#ffffff;
+    transition:all 0.25s ease;
+    box-shadow:0 2px 8px rgba(0,0,0,0.25);
+}
+
+.upload-btn:hover{
+    background:#2a2a2a;
+    transform:translateY(-2px);
+    box-shadow:0 6px 18px rgba(0,0,0,0.35);
+}
+
+/* gallery */
+.gallery{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:15px;
+}
+
+/* card hover cho ảnh và video */
+.gallery img,
+.gallery video{
+    width:100%;
+    height:220px;
+    object-fit:cover;
+    border-radius:12px;
+    cursor:pointer;
+    transition:all 0.25s ease;
+    user-select:none;
+    -webkit-user-drag:none;
+    box-shadow:0 4px 12px rgba(0,0,0,0.25);
+}
+
+.gallery img:hover,
+.gallery video:hover{
+    transform:scale(1.03) translateY(-2px);
+    box-shadow:0 10px 24px rgba(0,0,0,0.45);
+}
+
+/* modal chung */
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.95);
+    z-index:999;
+    justify-content:center;
+    align-items:center;
+    -webkit-user-select:none;
+    user-select:none;
+}
+
+/* modal ảnh */
+.modal-img{
+    max-width:95%;
+    max-height:95%;
+    object-fit:contain;
+    -webkit-user-drag:none;
+    user-select:none;
+}
+
+/* modal video */
+.modal-video{
+    max-width:95%;
+    max-height:95%;
+    width:min(1100px,95vw);
+    background:#000;
+    border-radius:12px;
+    outline:none;
+    user-select:none;
+    -webkit-user-drag:none;
+}
+
+/* nút đóng */
+#closeBtn,
+#videoCloseBtn{
+    position:absolute;
+    top:20px;
+    right:30px;
+    font-size:40px;
+    color:white;
+    cursor:pointer;
+}
+
+/* trang upload */
+.upload-page{
+    padding:30px;
+    color:white;
+}
+
+/* overlay */
+.screen-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.98);
+    z-index:99999;
+    display:none;
+}

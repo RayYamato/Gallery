@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đóng góp ảnh</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Thanh trên cùng -->
+  <div class="topbar">
+    <a href="index.html" class="upload-btn">← Quay về Gallery Ảnh</a>
+  </div>
+
+  <div class="upload-page">
+    <h2>Đóng góp thêm ảnh</h2>
+    
+    <div style="margin: 40px 0 25px;">
+      <input type="file" id="uploadInput" accept="image/*" style="display: none;">
+      
+      <!-- Nút chọn ảnh đẹp hơn -->
+      <button id="selectFileBtn" class="upload-btn" 
+              style="padding: 16px 28px; font-size: 17px; margin-bottom: 20px;">
+        📸 Chọn ảnh từ thiết bị
+      </button>
+      
+      <!-- Hiển thị tên file đã chọn -->
+      <div id="fileNameDisplay" 
+           style="margin: 15px 0; min-height: 26px; color: #aaa; font-size: 15px; word-break: break-all;">
+      </div>
+    </div>
+
+    <button id="uploadBtn" class="upload-btn" 
+            style="padding: 16px 32px; font-size: 17px; background: #0a84ff; border: none;">
+      ⬆️ Tải ảnh lên Gallery
+    </button>
+
+    <p id="status"></p>
+  </div>
+
+  <script src="upload.js"></script>
+
+  <script>
+    // Hỗ trợ click nút chọn file
+    document.getElementById('selectFileBtn').addEventListener('click', () => {
+      document.getElementById('uploadInput').click();
+    });
+
+    // Hiển thị tên file khi chọn
+    document.getElementById('uploadInput').addEventListener('change', function() {
+      const fileNameDisplay = document.getElementById('fileNameDisplay');
+      if (this.files.length > 0) {
+        fileNameDisplay.textContent = `Đã chọn: ${this.files[0].name}`;
+        fileNameDisplay.style.color = '#4ade80';
+      } else {
+        fileNameDisplay.textContent = '';
+      }
+    });
+  </script>
+
+</body>
+</html>
