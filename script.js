@@ -76,4 +76,3 @@ modal.addEventListener("click", (e) => {
 
 modalImg.draggable = false;
 
-loadImages();
