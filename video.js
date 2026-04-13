@@ -86,5 +86,3 @@ function loadVideos() {
         });
 }
 
-// load lần đầu
-loadVideos();
