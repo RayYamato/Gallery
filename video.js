@@ -193,9 +193,14 @@ async function loadVideos() {
 
         const files = await response.json();
 
-        videoFiles = files.filter(
+        videoFiles = files
+        .filter(
             (f) => f.type === "file" && /\.(mp4|webm|ogg|mov|m4v)$/i.test(f.name)
-        );
+        )
+        .sort((a, b) => {
+            return b.name.localeCompare(a.name); 
+            // video mới (tên lớn hơn) sẽ lên đầu
+        });
 
         currentPage = 1;
         renderVideos();
