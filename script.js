@@ -174,10 +174,15 @@ async function loadImages() {
 
         const files = await response.json();
 
-        images = files.filter((file) =>
+        images = files
+        .filter((file) =>
             file.type === "file" &&
             /\.(jpg|jpeg|png|gif|webp|bmp|svg|avif)$/i.test(file.name)
-        );
+        )
+        .sort((a, b) => {
+            return b.name.localeCompare(a.name);
+            // ảnh mới (tên lớn hơn) sẽ lên đầu
+        });
 
         currentPage = 1;
         renderGallery();
