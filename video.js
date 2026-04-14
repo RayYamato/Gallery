@@ -6,6 +6,10 @@ const videoCloseBtn = document.getElementById("videoCloseBtn");
 let videoFiles = [];
 let currentVideoIndex = -1;
 
+// ===== PAGINATION =====
+let currentPage = 1;
+const videosPerPage = 12;
+
 // chặn thao tác thừa
 window.addEventListener("contextmenu", (e) => {
     if (e.target.tagName === "VIDEO" || 
@@ -29,13 +33,11 @@ document.addEventListener("selectstart", (e) => {
     }
 });
 
-// ===== TẠO NÚT TRƯỚC / TIẾP TRONG MODAL =====
+// ===== NAV BUTTONS VIDEO MODAL =====
 const prevBtn = document.createElement("button");
-prevBtn.type = "button";
 prevBtn.textContent = "‹";
 
 const nextBtn = document.createElement("button");
-nextBtn.type = "button";
 nextBtn.textContent = "›";
 
 [prevBtn, nextBtn].forEach((btn) => {
@@ -47,7 +49,7 @@ nextBtn.textContent = "›";
     btn.style.height = "48px";
     btn.style.border = "none";
     btn.style.borderRadius = "999px";
-    btn.style.background = "rgba(0, 0, 0, 0.6)";
+    btn.style.background = "rgba(0,0,0,0.6)";
     btn.style.color = "#fff";
     btn.style.fontSize = "28px";
     btn.style.cursor = "pointer";
@@ -61,12 +63,44 @@ nextBtn.style.right = "16px";
 videoModal.appendChild(prevBtn);
 videoModal.appendChild(nextBtn);
 
-function updateNavButtons() {
-    const show = videoFiles.length > 1;
-    prevBtn.style.display = show ? "block" : "none";
-    nextBtn.style.display = show ? "block" : "none";
+// ===== PAGINATION UI =====
+const pagination = document.createElement("div");
+pagination.style.display = "flex";
+pagination.style.justifyContent = "center";
+pagination.style.gap = "10px";
+pagination.style.margin = "20px 0";
+
+document.body.appendChild(pagination);
+
+// ===== RENDER PAGE BUTTONS =====
+function renderPagination() {
+    const totalPages = Math.ceil(videoFiles.length / videosPerPage);
+    pagination.innerHTML = "";
+
+    if (totalPages <= 1) return;
+
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+
+        btn.style.padding = "6px 12px";
+        btn.style.border = "none";
+        btn.style.borderRadius = "8px";
+        btn.style.cursor = "pointer";
+
+        btn.style.background = i === currentPage ? "#333" : "#eee";
+        btn.style.color = i === currentPage ? "#fff" : "#000";
+
+        btn.addEventListener("click", () => {
+            currentPage = i;
+            renderVideos();
+        });
+
+        pagination.appendChild(btn);
+    }
 }
 
+// ===== OPEN VIDEO =====
 function openVideoByIndex(index) {
     if (!videoFiles.length) return;
 
@@ -81,14 +115,9 @@ function openVideoByIndex(index) {
     modalVideo.src = file.download_url;
     modalVideo.currentTime = 0;
 
-    // LOOP cho video trong modal
     modalVideo.loop = true;
-
     modalVideo.controls = true;
-    modalVideo.setAttribute(
-        "controlsList",
-        "nodownload noplaybackrate noremoteplayback nofullscreen"
-    );
+    modalVideo.setAttribute("controlsList", "nodownload noplaybackrate noremoteplayback nofullscreen");
     modalVideo.disablePictureInPicture = true;
 
     modalVideo.load();
@@ -97,19 +126,64 @@ function openVideoByIndex(index) {
     updateNavButtons();
 }
 
-// nút video trước
+// ===== NAV MODAL =====
+function updateNavButtons() {
+    prevBtn.style.display = videoFiles.length > 1 ? "block" : "none";
+    nextBtn.style.display = videoFiles.length > 1 ? "block" : "none";
+}
+
 prevBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     openVideoByIndex(currentVideoIndex - 1);
 });
 
-// nút video tiếp
 nextBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     openVideoByIndex(currentVideoIndex + 1);
 });
 
-// ===== LOAD VIDEO 1 LẦN =====
+// ===== RENDER VIDEO (PHÂN TRANG) =====
+function renderVideos() {
+    videoGallery.innerHTML = "";
+
+    const start = (currentPage - 1) * videosPerPage;
+    const end = start + videosPerPage;
+
+    const pageItems = videoFiles.slice(start, end);
+
+    pageItems.forEach((file, index) => {
+        const realIndex = start + index;
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const video = document.createElement("video");
+        video.src = file.download_url;
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = "metadata";
+        video.controls = false;
+        video.draggable = false;
+        video.loop = true;
+
+        video.style.width = "100%";
+        video.style.height = "220px";
+        video.style.objectFit = "cover";
+        video.style.borderRadius = "12px";
+        video.style.cursor = "pointer";
+
+        video.addEventListener("click", () => {
+            openVideoByIndex(realIndex);
+        });
+
+        card.appendChild(video);
+        videoGallery.appendChild(card);
+    });
+
+    renderPagination();
+}
+
+// ===== LOAD VIDEO =====
 async function loadVideos() {
     try {
         const response = await fetch(
@@ -117,79 +191,29 @@ async function loadVideos() {
             { cache: "no-store" }
         );
 
-        if (!response.ok) {
-            throw new Error("Lỗi GitHub: " + response.status);
-        }
-
         const files = await response.json();
 
-        if (!Array.isArray(files)) {
-            videoGallery.innerHTML = `<p>Không tải được video.</p>`;
-            return;
-        }
-
         videoFiles = files.filter(
-            (file) => file.type === "file" && /\.(mp4|webm|ogg|mov|m4v)$/i.test(file.name)
+            (f) => f.type === "file" && /\.(mp4|webm|ogg|mov|m4v)$/i.test(f.name)
         );
 
-        if (videoFiles.length === 0) {
-            videoGallery.innerHTML = `<p>Không có video.</p>`;
-            updateNavButtons();
-            return;
-        }
-
-        videoGallery.innerHTML = "";
-
-        videoFiles.forEach((file, index) => {
-            const card = document.createElement("div");
-            card.className = "card";
-
-            const video = document.createElement("video");
-            video.src = file.download_url;
-            video.muted = true;
-            video.playsInline = true;
-            video.preload = "metadata";
-            video.controls = false;
-            video.draggable = false;
-
-            // LOOP cho video thumbnail
-            video.loop = true;
-
-            video.setAttribute("playsinline", "");
-            video.setAttribute("controlslist", "nodownload noplaybackrate noremoteplayback");
-            video.disablePictureInPicture = true;
-
-            video.style.width = "100%";
-            video.style.height = "220px";
-            video.style.objectFit = "cover";
-            video.style.borderRadius = "12px";
-            video.style.cursor = "pointer";
-            video.style.userSelect = "none";
-
-            video.addEventListener("click", () => {
-                openVideoByIndex(index);
-            });
-
-            card.appendChild(video);
-            videoGallery.appendChild(card);
-        });
-
+        currentPage = 1;
+        renderVideos();
         updateNavButtons();
+
     } catch (error) {
-        console.error("Lỗi tải video:", error);
-        videoGallery.innerHTML = `<p>Không tải được video.</p>`;
-        updateNavButtons();
+        console.error(error);
+        videoGallery.innerHTML = "<p>Lỗi tải video</p>";
     }
 }
 
-// đóng modal
+// ===== CLOSE MODAL =====
 videoCloseBtn.addEventListener("click", () => {
     videoModal.style.display = "none";
     modalVideo.pause();
     modalVideo.src = "";
 });
 
-// click ra ngoài để đóng
 videoModal.addEventListener("click", (e) => {
     if (e.target === videoModal) {
         videoModal.style.display = "none";
@@ -198,5 +222,5 @@ videoModal.addEventListener("click", (e) => {
     }
 });
 
-// load khi mở trang
+// ===== INIT =====
 loadVideos();
