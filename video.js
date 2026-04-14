@@ -7,14 +7,21 @@ let videoFiles = [];
 let currentVideoIndex = -1;
 
 // ===== PAGINATION =====
-let currentPage = 1;
+let currentPage = parseInt(localStorage.getItem("videoGalleryPage")) || 1;
 const videosPerPage = 12;
+
+// ===== SAVE PAGE =====
+function saveCurrentPage() {
+    localStorage.setItem("videoGalleryPage", currentPage);
+}
 
 // chặn thao tác thừa
 window.addEventListener("contextmenu", (e) => {
-    if (e.target.tagName === "VIDEO" || 
-        e.target.closest("#videoGallery") || 
-        e.target.closest("#videoModal")) {
+    if (
+        e.target.tagName === "VIDEO" ||
+        e.target.closest("#videoGallery") ||
+        e.target.closest("#videoModal")
+    ) {
         e.preventDefault();
     }
 });
@@ -26,9 +33,11 @@ window.addEventListener("dragstart", (e) => {
 });
 
 document.addEventListener("selectstart", (e) => {
-    if (e.target.tagName === "VIDEO" || 
-        e.target.closest("#videoGallery") || 
-        e.target.closest("#videoModal")) {
+    if (
+        e.target.tagName === "VIDEO" ||
+        e.target.closest("#videoGallery") ||
+        e.target.closest("#videoModal")
+    ) {
         e.preventDefault();
     }
 });
@@ -69,8 +78,18 @@ pagination.style.display = "flex";
 pagination.style.justifyContent = "center";
 pagination.style.gap = "10px";
 pagination.style.margin = "20px 0";
+pagination.style.flexWrap = "wrap";
 
 document.body.appendChild(pagination);
+
+function stylePageBtn(btn, active) {
+    btn.style.padding = "6px 12px";
+    btn.style.border = "none";
+    btn.style.borderRadius = "8px";
+    btn.style.cursor = "pointer";
+    btn.style.background = active ? "#333" : "#eee";
+    btn.style.color = active ? "#fff" : "#000";
+}
 
 // ===== RENDER PAGE BUTTONS =====
 function renderPagination() {
@@ -79,24 +98,99 @@ function renderPagination() {
 
     if (totalPages <= 1) return;
 
-    for (let i = 1; i <= totalPages; i++) {
+    const maxVisible = 10;
+    let startPage = Math.max(1, currentPage - 4);
+    let endPage = startPage + maxVisible - 1;
+
+    if (endPage > totalPages) {
+        endPage = totalPages;
+        startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    // nút lùi
+    if (currentPage > 1) {
+        const prev = document.createElement("button");
+        prev.textContent = "‹";
+        stylePageBtn(prev, false);
+
+        prev.addEventListener("click", () => {
+            currentPage--;
+            saveCurrentPage();
+            renderVideos();
+        });
+
+        pagination.appendChild(prev);
+    }
+
+    // trang đầu
+    if (startPage > 1) {
+        const first = document.createElement("button");
+        first.textContent = "1";
+        stylePageBtn(first, currentPage === 1);
+
+        first.addEventListener("click", () => {
+            currentPage = 1;
+            saveCurrentPage();
+            renderVideos();
+        });
+
+        pagination.appendChild(first);
+
+        const dots = document.createElement("span");
+        dots.textContent = "...";
+        dots.style.padding = "6px";
+        pagination.appendChild(dots);
+    }
+
+    // các trang giữa
+    for (let i = startPage; i <= endPage; i++) {
         const btn = document.createElement("button");
         btn.textContent = i;
 
-        btn.style.padding = "6px 12px";
-        btn.style.border = "none";
-        btn.style.borderRadius = "8px";
-        btn.style.cursor = "pointer";
-
-        btn.style.background = i === currentPage ? "#333" : "#eee";
-        btn.style.color = i === currentPage ? "#fff" : "#000";
+        stylePageBtn(btn, i === currentPage);
 
         btn.addEventListener("click", () => {
             currentPage = i;
+            saveCurrentPage();
             renderVideos();
         });
 
         pagination.appendChild(btn);
+    }
+
+    // trang cuối
+    if (endPage < totalPages) {
+        const dots = document.createElement("span");
+        dots.textContent = "...";
+        dots.style.padding = "6px";
+        pagination.appendChild(dots);
+
+        const last = document.createElement("button");
+        last.textContent = totalPages;
+        stylePageBtn(last, currentPage === totalPages);
+
+        last.addEventListener("click", () => {
+            currentPage = totalPages;
+            saveCurrentPage();
+            renderVideos();
+        });
+
+        pagination.appendChild(last);
+    }
+
+    // nút tiến
+    if (currentPage < totalPages) {
+        const next = document.createElement("button");
+        next.textContent = "›";
+        stylePageBtn(next, false);
+
+        next.addEventListener("click", () => {
+            currentPage++;
+            saveCurrentPage();
+            renderVideos();
+        });
+
+        pagination.appendChild(next);
     }
 }
 
@@ -117,7 +211,10 @@ function openVideoByIndex(index) {
 
     modalVideo.loop = true;
     modalVideo.controls = true;
-    modalVideo.setAttribute("controlsList", "nodownload noplaybackrate noremoteplayback nofullscreen");
+    modalVideo.setAttribute(
+        "controlsList",
+        "nodownload noplaybackrate noremoteplayback nofullscreen"
+    );
     modalVideo.disablePictureInPicture = true;
 
     modalVideo.load();
@@ -142,9 +239,16 @@ nextBtn.addEventListener("click", (e) => {
     openVideoByIndex(currentVideoIndex + 1);
 });
 
-// ===== RENDER VIDEO (PHÂN TRANG) =====
+// ===== RENDER VIDEO =====
 function renderVideos() {
     videoGallery.innerHTML = "";
+
+    const totalPages = Math.ceil(videoFiles.length / videosPerPage);
+
+    if (currentPage > totalPages) {
+        currentPage = 1;
+        saveCurrentPage();
+    }
 
     const start = (currentPage - 1) * videosPerPage;
     const end = start + videosPerPage;
@@ -194,15 +298,15 @@ async function loadVideos() {
         const files = await response.json();
 
         videoFiles = files
-        .filter(
-            (f) => f.type === "file" && /\.(mp4|webm|ogg|mov|m4v)$/i.test(f.name)
-        )
-        .sort((a, b) => {
-            return b.name.localeCompare(a.name); 
-            // video mới (tên lớn hơn) sẽ lên đầu
-        });
+            .filter(
+                (f) =>
+                    f.type === "file" &&
+                    /\.(mp4|webm|ogg|mov|m4v)$/i.test(f.name)
+            )
+            .sort((a, b) => {
+                return b.name.localeCompare(a.name);
+            });
 
-        currentPage = 1;
         renderVideos();
         updateNavButtons();
 
