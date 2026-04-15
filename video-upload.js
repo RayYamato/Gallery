@@ -42,21 +42,37 @@ videoUploadBtn.addEventListener("click", async () => {
             return;
         }
 
-        const file = videoUploadInput.files[0];
+        const files = videoUploadInput.files;
 
-        if (!file) {
+        if (!files || files.length === 0) {
             videoStatus.textContent = "Vui lòng chọn video";
             return;
         }
 
-        videoStatus.textContent = "Đang tải video lên...";
+        if (files.length > 10) {
+            videoStatus.textContent = "Chỉ được chọn tối đa 10 video.";
+            return;
+        }
 
-        const reader = new FileReader();
+        videoStatus.textContent = `Đang tải ${files.length} video lên...`;
 
-        reader.onload = async function () {
+        let successCount = 0;
+        let failCount = 0;
+
+        for (const file of files) {
             try {
-                const base64Content = reader.result.split(",")[1];
-                const filePath = `video/${Date.now()}_${file.name}`;
+                const base64Content = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+
+                    reader.onload = function () {
+                        resolve(reader.result.split(",")[1]);
+                    };
+
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+
+                const filePath = `video/${Date.now()}_${Math.random().toString(36).slice(2)}_${file.name}`;
 
                 const response = await fetch(
                     `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`,
@@ -78,20 +94,27 @@ videoUploadBtn.addEventListener("click", async () => {
                 console.log("system result:", result);
 
                 if (response.ok) {
-                    videoStatus.textContent =
-                        "Tải video thành công! Vui lòng đợi trong giây lát và trở lại.";
-                    videoUploadInput.value = "";
+                    successCount++;
                 } else {
-                    videoStatus.textContent =
-                        "Không thể tải video lên. Vui lòng thử lại.";
+                    failCount++;
                 }
+
             } catch (error) {
                 console.error(error);
-                videoStatus.textContent = "Đã xảy ra lỗi khi xử lý video.";
+                failCount++;
             }
-        };
+        }
 
-        reader.readAsDataURL(file);
+        if (successCount > 0) {
+            videoStatus.textContent =
+                `Tải thành công ${successCount} video` +
+                (failCount > 0 ? `, lỗi ${failCount} video.` : "!");
+            videoUploadInput.value = "";
+        } else {
+            videoStatus.textContent =
+                "Không thể tải video lên. Vui lòng thử lại.";
+        }
+
     } catch (error) {
         console.error(error);
         videoStatus.textContent = "Không thể khởi tạo hệ thống lúc này.";
