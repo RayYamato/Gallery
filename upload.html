@@ -16,53 +16,125 @@
   </div>
 
   <div class="upload-page">
-    <h2>Đóng góp thêm ảnh</h2>
+    <div class="upload-card">
 
-    <div style="margin: 40px 0 25px;">
-      <input type="file" id="uploadInput" multiple accept="image/*" style="display: none;">
+      <h2 class="upload-title">📸 Đóng góp thêm ảnh</h2>
+      <p class="upload-subtitle">
+        Chọn ảnh hoặc kéo thả trực tiếp vào khung bên dưới
+      </p>
 
-      <button id="selectFileBtn" class="upload-btn" style="padding: 16px 28px; font-size: 17px; margin-bottom: 20px;">
-        📸 Chọn ảnh từ thiết bị
-      </button>
+      <!-- SELECT AREA -->
+      <div class="video-select-wrapper">
+        <input type="file" id="uploadInput" multiple accept="image/*" style="display:none;">
 
-      <div id="fileNameDisplay"
-        style="margin:15px 0; min-height:26px; max-height:200px; overflow-y:auto; color:#aaa; font-size:15px;">
+        <div class="video-drop-row" id="dropZone">
+          <button id="selectFileBtn" class="upload-btn select-video-btn">
+            📸 Chọn ảnh
+          </button>
+
+          <div id="fileNameDisplay" class="file-display">
+            Kéo thả ảnh vào đây hoặc chọn từ thiết bị
+          </div>
+        </div>
       </div>
+
+      <div class="upload-action">
+        <button id="uploadBtn" class="upload-btn upload-main-btn">
+          ⬆️ Tải ảnh lên Gallery
+        </button>
+      </div>
+
+      <p id="status" class="upload-status"></p>
+
     </div>
-
-    <button id="uploadBtn" class="upload-btn"
-      style="padding: 16px 32px; font-size: 17px; background: #0a84ff; border: none;">
-      ⬆️ Tải ảnh lên Gallery
-    </button>
-
-    <p id="status"></p>
   </div>
 
   <script src="upload.js"></script>
 
   <script>
-    document.getElementById('selectFileBtn').addEventListener('click', () => {
-      document.getElementById('uploadInput').click();
+    const selectBtn = document.getElementById('selectFileBtn');
+    const uploadInput = document.getElementById('uploadInput');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const dropZone = document.getElementById('dropZone');
+
+    let selectedFiles = [];
+
+    selectBtn.addEventListener('click', () => {
+      uploadInput.click();
     });
 
-    document.getElementById('uploadInput').addEventListener('change', function () {
-      const fileNameDisplay = document.getElementById('fileNameDisplay');
+    function syncInputFiles() {
+      const dt = new DataTransfer();
+      selectedFiles.forEach(file => dt.items.add(file));
+      uploadInput.files = dt.files;
+    }
 
-      if (this.files.length > 0) {
-        let fileListHTML = `<b>Đã chọn ${this.files.length} ảnh:</b><br>`;
-
-        for (let i = 0; i < this.files.length; i++) {
-          fileListHTML += `${i + 1}. ${this.files[i].name}<br>`;
-        }
-
-        fileNameDisplay.innerHTML = fileListHTML;
-        fileNameDisplay.style.color = '#4ade80';
-      } else {
-        fileNameDisplay.innerHTML = '';
+    function renderFileList() {
+      if (selectedFiles.length === 0) {
+        fileNameDisplay.innerHTML = 'Kéo thả ảnh vào đây hoặc chọn từ thiết bị';
+        fileNameDisplay.style.color = '#aaa';
+        return;
       }
+
+      let html = `<b>Đã chọn ${selectedFiles.length} ảnh:</b><br>`;
+
+      selectedFiles.forEach((file, index) => {
+        html += `
+          <div class="selected-file-item">
+            <span>${index + 1}. ${file.name}</span>
+            <button class="remove-file-btn" data-index="${index}">✖</button>
+          </div>
+        `;
+      });
+
+      fileNameDisplay.innerHTML = html;
+      fileNameDisplay.style.color = '#4ade80';
+
+      document.querySelectorAll('.remove-file-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const index = Number(btn.dataset.index);
+          selectedFiles.splice(index, 1);
+          syncInputFiles();
+          renderFileList();
+        });
+      });
+    }
+
+    function addFiles(newFiles) {
+      for (const file of newFiles) {
+        const exists = selectedFiles.some(
+          f => f.name === file.name &&
+               f.size === file.size &&
+               f.lastModified === file.lastModified
+        );
+
+        if (!exists) selectedFiles.push(file);
+      }
+
+      syncInputFiles();
+      renderFileList();
+    }
+
+    uploadInput.addEventListener('change', function () {
+      addFiles(this.files);
+      this.value = "";
+    });
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      fileNameDisplay.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      fileNameDisplay.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      fileNameDisplay.classList.remove('dragover');
+      addFiles(e.dataTransfer.files);
     });
   </script>
 
 </body>
-
 </html>
