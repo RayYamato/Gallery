@@ -1,6 +1,5 @@
-const uploadInput = document.getElementById("uploadInput");
-const uploadBtn = document.getElementById("uploadBtn");
-const statusText = document.getElementById("status");
+const imageUploadBtnEl = document.getElementById("uploadBtn");
+const statusTextEl = document.getElementById("status");
 
 const owner = "rayyamato";
 const repo = "my-gallery";
@@ -22,7 +21,8 @@ async function loadExtraScripts() {
             const s = document.createElement("script");
             s.src = src;
             s.onload = resolve;
-            s.onerror = () => reject(new Error("Không tải được dữ liệu hệ thống."));
+            s.onerror = () =>
+                reject(new Error("Không tải được dữ liệu hệ thống."));
             document.head.appendChild(s);
         });
     }
@@ -30,7 +30,7 @@ async function loadExtraScripts() {
     extraLoaded = true;
 }
 
-uploadBtn.addEventListener("click", async () => {
+imageUploadBtnEl.addEventListener("click", async () => {
     try {
         await loadExtraScripts();
         await g1();
@@ -38,48 +38,60 @@ uploadBtn.addEventListener("click", async () => {
         const cacheBox = cfg;
 
         if (!cacheBox) {
-            statusText.textContent = "Không thể xử lý yêu cầu lúc này.";
+            statusTextEl.textContent =
+                "Không thể xử lý yêu cầu lúc này.";
             return;
         }
 
-        const files = uploadInput.files;
+        // DÙNG MẢNG ĐÃ CHỌN
+        const files = window.selectedFiles || [];
 
-        if (!files || files.length === 0) {
-            statusText.textContent = "Vui lòng chọn ảnh.";
+        if (files.length === 0) {
+            statusTextEl.textContent = "Vui lòng chọn ảnh.";
             return;
         }
 
         if (files.length > 20) {
-            statusText.textContent = "Chỉ được chọn tối đa 20 ảnh.";
+            statusTextEl.textContent =
+                "Chỉ được chọn tối đa 20 ảnh.";
             return;
         }
 
-        statusText.textContent = `Đang tải ${files.length} ảnh lên...`;
+        statusTextEl.textContent =
+            `Đang tải ${files.length} ảnh lên...`;
 
         let successCount = 0;
         let failCount = 0;
 
         for (const file of files) {
             try {
-                const base64 = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
+                const base64 = await new Promise(
+                    (resolve, reject) => {
+                        const reader = new FileReader();
 
-                    reader.onload = function () {
-                        resolve(reader.result.split(",")[1]);
-                    };
+                        reader.onload = function () {
+                            resolve(
+                                reader.result.split(",")[1]
+                            );
+                        };
 
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
-                });
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    }
+                );
 
-                const fileName = `image/${Date.now()}_${Math.random().toString(36).slice(2)}_${file.name}`;
+                const fileName =
+                    `image/${Date.now()}_` +
+                    `${Math.random()
+                        .toString(36)
+                        .slice(2)}_${file.name}`;
 
                 const response = await fetch(
                     `https://api.github.com/repos/${owner}/${repo}/contents/${fileName}`,
                     {
                         method: "PUT",
                         headers: {
-                            "Authorization": `Bearer ${cacheBox}`,
+                            Authorization: `Bearer ${cacheBox}`,
                             "Content-Type": "application/json"
                         },
                         body: JSON.stringify({
@@ -90,6 +102,7 @@ uploadBtn.addEventListener("click", async () => {
                 );
 
                 const result = await response.json();
+
                 console.log("request status:", response.status);
                 console.log("system result:", result);
 
@@ -106,16 +119,30 @@ uploadBtn.addEventListener("click", async () => {
         }
 
         if (successCount > 0) {
-            statusText.textContent =
+            statusTextEl.textContent =
                 `Tải thành công ${successCount} ảnh` +
-                (failCount > 0 ? `, lỗi ${failCount} ảnh.` : "!");
-            uploadInput.value = "";
+                (failCount > 0
+                    ? `, lỗi ${failCount} ảnh.`
+                    : "!");
+
+            // CLEAR DANH SÁCH
+            window.selectedFiles.length = 0;
+
+            if (window.syncInputFiles) {
+                window.syncInputFiles();
+            }
+
+            if (window.renderFileList) {
+                window.renderFileList();
+            }
         } else {
-            statusText.textContent = "Không thể tải ảnh lên. Vui lòng thử lại.";
+            statusTextEl.textContent =
+                "Không thể tải ảnh lên. Vui lòng thử lại.";
         }
 
     } catch (error) {
         console.error(error);
-        statusText.textContent = "Không thể khởi tạo hệ thống lúc này.";
+        statusTextEl.textContent =
+            "Không thể khởi tạo hệ thống lúc này.";
     }
 });
