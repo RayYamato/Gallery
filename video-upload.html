@@ -57,6 +57,7 @@
 
     // lưu danh sách file cộng dồn
     let selectedFiles = [];
+    window.selectedFiles = selectedFiles;
 
     selectBtn.addEventListener('click', () => {
       uploadInput.click();
@@ -71,6 +72,7 @@
 
       uploadInput.files = dt.files;
     }
+    window.syncInputFiles = syncInputFiles;
 
     function renderFileList() {
       if (selectedFiles.length === 0) {
@@ -99,11 +101,13 @@
         btn.addEventListener('click', () => {
           const index = Number(btn.dataset.index);
           selectedFiles.splice(index, 1);
+
           syncInputFiles();
           renderFileList();
         });
       });
     }
+    window.renderFileList = renderFileList;
 
     function addFiles(newFiles) {
       for (const file of newFiles) {
@@ -123,6 +127,7 @@
       syncInputFiles();
       renderFileList();
     }
+    window.addFiles = addFiles;
 
     uploadInput.addEventListener('change', function () {
       addFiles(this.files);
