@@ -58,6 +58,7 @@
     const dropZone = document.getElementById('dropZone');
 
     let selectedFiles = [];
+    window.selectedFiles = selectedFiles;
 
     selectBtn.addEventListener('click', () => {
       uploadInput.click();
@@ -68,6 +69,7 @@
       selectedFiles.forEach(file => dt.items.add(file));
       uploadInput.files = dt.files;
     }
+    window.syncInputFiles = syncInputFiles;
 
     function renderFileList() {
       if (selectedFiles.length === 0) {
@@ -80,11 +82,11 @@
 
       selectedFiles.forEach((file, index) => {
         html += `
-          <div class="selected-file-item">
-            <span>${index + 1}. ${file.name}</span>
-            <button class="remove-file-btn" data-index="${index}">✖</button>
-          </div>
-        `;
+        <div class="selected-file-item">
+          <span>${index + 1}. ${file.name}</span>
+          <button class="remove-file-btn" data-index="${index}">✖</button>
+        </div>
+      `;
       });
 
       fileNameDisplay.innerHTML = html;
@@ -99,21 +101,26 @@
         });
       });
     }
+    window.renderFileList = renderFileList;
 
     function addFiles(newFiles) {
       for (const file of newFiles) {
         const exists = selectedFiles.some(
-          f => f.name === file.name &&
-               f.size === file.size &&
-               f.lastModified === file.lastModified
+          f =>
+            f.name === file.name &&
+            f.size === file.size &&
+            f.lastModified === file.lastModified
         );
 
-        if (!exists) selectedFiles.push(file);
+        if (!exists) {
+          selectedFiles.push(file);
+        }
       }
 
       syncInputFiles();
       renderFileList();
     }
+    window.addFiles = addFiles;
 
     uploadInput.addEventListener('change', function () {
       addFiles(this.files);
@@ -137,4 +144,5 @@
   </script>
 
 </body>
+
 </html>
