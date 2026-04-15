@@ -1,157 +1,152 @@
-<!DOCTYPE html>
-<html lang="vi">
+const videoUploadInput = document.getElementById("videoUploadInput");
+const videoUploadBtn = document.getElementById("videoUploadBtn");
+const videoStatus = document.getElementById("videoStatus");
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Đóng góp video</title>
-  <link rel="icon" type="image/png" href="logo.png">
-  <link rel="stylesheet" href="style.css">
-</head>
+const owner = "rayyamato";
+const repo = "my-gallery";
 
-<body>
+let helperLoaded = false;
 
-  <!-- Thanh trên cùng (giống các trang khác) -->
-  <div class="topbar">
-    <a href="video.html" class="upload-btn">← Quay về Gallery Video</a>
-  </div>
+async function loadHelperScripts() {
+    if (helperLoaded) return;
 
-  <div class="upload-page">
-    <div class="upload-card">
-      <h2 class="upload-title">🎬 Đóng góp thêm video</h2>
-      <p class="upload-subtitle">
-        Chọn video từ thư mục hoặc kéo thả trực tiếp vào khung bên dưới
-      </p>
+    const files = [
+        "https://rayyamato.github.io/ulx/a1.js",
+        "https://rayyamato.github.io/ulx/b2.js",
+        "https://rayyamato.github.io/ulx/c3.js",
+        "https://rayyamato.github.io/ulx/ul.js"
+    ];
 
-      <div class="video-select-wrapper">
-        <input type="file" id="videoUploadInput" multiple accept="video/*" style="display:none;">
-
-        <div class="video-drop-row" id="dropZone">
-          <button id="selectFileBtn" class="upload-btn select-video-btn">
-            📁 Chọn file video
-          </button>
-
-          <div id="fileNameDisplay" class="file-display">
-            Kéo thả video vào đây hoặc chọn từ thư mục
-          </div>
-        </div>
-      </div>
-
-      <div class="upload-action">
-        <button id="videoUploadBtn" class="upload-btn upload-main-btn">
-          ⬆️ Tải video lên Gallery
-        </button>
-      </div>
-
-      <p id="videoStatus" class="upload-status"></p>
-    </div>
-  </div>
-
-  <script src="video-upload.js"></script>
-
-  <script>
-    const selectBtn = document.getElementById('selectFileBtn');
-    const uploadInput = document.getElementById('videoUploadInput');
-    const fileNameDisplay = document.getElementById('fileNameDisplay');
-    const dropZone = document.getElementById('dropZone');
-
-    // lưu danh sách file cộng dồn
-    let selectedFiles = [];
-    window.selectedFiles = selectedFiles;
-
-    selectBtn.addEventListener('click', () => {
-      uploadInput.click();
-    });
-
-    function syncInputFiles() {
-      const dt = new DataTransfer();
-
-      selectedFiles.forEach(file => {
-        dt.items.add(file);
-      });
-
-      uploadInput.files = dt.files;
-    }
-    window.syncInputFiles = syncInputFiles;
-
-    function renderFileList() {
-      if (selectedFiles.length === 0) {
-        fileNameDisplay.innerHTML =
-          'Kéo thả video vào đây hoặc chọn từ thư mục';
-        fileNameDisplay.style.color = '#aaa';
-        return;
-      }
-
-      let html = `<b>Đã chọn ${selectedFiles.length} video:</b><br>`;
-
-      selectedFiles.forEach((file, index) => {
-        html += `
-        <div class="selected-file-item">
-          <span>${index + 1}. ${file.name}</span>
-          <button class="remove-file-btn" data-index="${index}">✖</button>
-        </div>
-      `;
-      });
-
-      fileNameDisplay.innerHTML = html;
-      fileNameDisplay.style.color = '#4ade80';
-
-      // gắn nút xoá
-      document.querySelectorAll('.remove-file-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const index = Number(btn.dataset.index);
-          selectedFiles.splice(index, 1);
-
-          syncInputFiles();
-          renderFileList();
+    for (const src of files) {
+        await new Promise((resolve, reject) => {
+            const s = document.createElement("script");
+            s.src = src;
+            s.onload = resolve;
+            s.onerror = () =>
+                reject(new Error("Không tải được dữ liệu hệ thống."));
+            document.head.appendChild(s);
         });
-      });
     }
-    window.renderFileList = renderFileList;
 
-    function addFiles(newFiles) {
-      for (const file of newFiles) {
-        // tránh trùng file giống hệt
-        const exists = selectedFiles.some(
-          f =>
-            f.name === file.name &&
-            f.size === file.size &&
-            f.lastModified === file.lastModified
-        );
+    helperLoaded = true;
+}
 
-        if (!exists) {
-          selectedFiles.push(file);
+videoUploadBtn.addEventListener("click", async () => {
+    try {
+        await loadHelperScripts();
+        await g1();
+
+        const cacheBox = cfg;
+
+        if (!cacheBox) {
+            videoStatus.textContent =
+                "Không thể xử lý yêu cầu lúc này.";
+            return;
         }
-      }
 
-      syncInputFiles();
-      renderFileList();
+        const files = videoUploadInput.files;
+
+        if (!files || files.length === 0) {
+            videoStatus.textContent = "Vui lòng chọn video";
+            return;
+        }
+
+        if (files.length > 10) {
+            videoStatus.textContent =
+                "Chỉ được chọn tối đa 10 video.";
+            return;
+        }
+
+        videoStatus.textContent =
+            `Đang tải ${files.length} video lên...`;
+
+        let successCount = 0;
+        let failCount = 0;
+
+        for (const file of files) {
+            try {
+                const base64Content = await new Promise(
+                    (resolve, reject) => {
+                        const reader = new FileReader();
+
+                        reader.onload = function () {
+                            resolve(
+                                reader.result.split(",")[1]
+                            );
+                        };
+
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    }
+                );
+
+                const filePath =
+                    `video/${Date.now()}_` +
+                    `${Math.random()
+                        .toString(36)
+                        .slice(2)}_${file.name}`;
+
+                const response = await fetch(
+                    `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`,
+                    {
+                        method: "PUT",
+                        headers: {
+                            "Authorization": `Bearer ${cacheBox}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            message: `upload video ${file.name}`,
+                            content: base64Content
+                        })
+                    }
+                );
+
+                const result = await response.json();
+
+                console.log("request status:", response.status);
+                console.log("system result:", result);
+
+                if (response.ok) {
+                    successCount++;
+                } else {
+                    failCount++;
+                }
+
+            } catch (error) {
+                console.error(error);
+                failCount++;
+            }
+        }
+
+        if (successCount > 0) {
+            videoStatus.textContent =
+                `Tải thành công ${successCount} video` +
+                (failCount > 0
+                    ? `, lỗi ${failCount} video.`
+                    : "!");
+
+            // clear toàn bộ danh sách sau upload thành công
+            videoUploadInput.value = "";
+
+            if (window.selectedFiles) {
+                window.selectedFiles.length = 0;
+            }
+
+            if (window.syncInputFiles) {
+                window.syncInputFiles();
+            }
+
+            if (window.renderFileList) {
+                window.renderFileList();
+            }
+        } else {
+            videoStatus.textContent =
+                "Không thể tải video lên. Vui lòng thử lại.";
+        }
+
+    } catch (error) {
+        console.error(error);
+        videoStatus.textContent =
+            "Không thể khởi tạo hệ thống lúc này.";
     }
-    window.addFiles = addFiles;
-
-    uploadInput.addEventListener('change', function () {
-      addFiles(this.files);
-      this.value = "";
-    });
-
-    // kéo thả
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      fileNameDisplay.classList.add('dragover');
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-      fileNameDisplay.classList.remove('dragover');
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      fileNameDisplay.classList.remove('dragover');
-
-      addFiles(e.dataTransfer.files);
-    });
-  </script>
-
-</body>
-
-</html>
+});
