@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
   <div class="topbar">
@@ -15,22 +17,21 @@
 
   <div class="upload-page">
     <h2>Đóng góp thêm ảnh</h2>
-    
+
     <div style="margin: 40px 0 25px;">
-      <input type="file" id="uploadInput" accept="image/*" style="display: none;">
-      
-      <button id="selectFileBtn" class="upload-btn" 
-              style="padding: 16px 28px; font-size: 17px; margin-bottom: 20px;">
+      <input type="file" id="uploadInput" multiple accept="image/*" style="display: none;">
+
+      <button id="selectFileBtn" class="upload-btn" style="padding: 16px 28px; font-size: 17px; margin-bottom: 20px;">
         📸 Chọn ảnh từ thiết bị
       </button>
-      
-      <div id="fileNameDisplay" 
-           style="margin: 15px 0; min-height: 26px; color: #aaa; font-size: 15px; word-break: break-all;">
+
+      <div id="fileNameDisplay"
+        style="margin:15px 0; min-height:26px; max-height:200px; overflow-y:auto; color:#aaa; font-size:15px;">
       </div>
     </div>
 
-    <button id="uploadBtn" class="upload-btn" 
-            style="padding: 16px 32px; font-size: 17px; background: #0a84ff; border: none;">
+    <button id="uploadBtn" class="upload-btn"
+      style="padding: 16px 32px; font-size: 17px; background: #0a84ff; border: none;">
       ⬆️ Tải ảnh lên Gallery
     </button>
 
@@ -44,16 +45,24 @@
       document.getElementById('uploadInput').click();
     });
 
-    document.getElementById('uploadInput').addEventListener('change', function() {
+    document.getElementById('uploadInput').addEventListener('change', function () {
       const fileNameDisplay = document.getElementById('fileNameDisplay');
+
       if (this.files.length > 0) {
-        fileNameDisplay.textContent = `Đã chọn: ${this.files[0].name}`;
+        let fileListHTML = `<b>Đã chọn ${this.files.length} ảnh:</b><br>`;
+
+        for (let i = 0; i < this.files.length; i++) {
+          fileListHTML += `${i + 1}. ${this.files[i].name}<br>`;
+        }
+
+        fileNameDisplay.innerHTML = fileListHTML;
         fileNameDisplay.style.color = '#4ade80';
       } else {
-        fileNameDisplay.textContent = '';
+        fileNameDisplay.innerHTML = '';
       }
     });
   </script>
 
 </body>
+
 </html>
