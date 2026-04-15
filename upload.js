@@ -42,21 +42,37 @@ uploadBtn.addEventListener("click", async () => {
             return;
         }
 
-        const file = uploadInput.files[0];
+        const files = uploadInput.files;
 
-        if (!file) {
+        if (!files || files.length === 0) {
             statusText.textContent = "Vui lòng chọn ảnh.";
             return;
         }
 
-        statusText.textContent = "Đang tải ảnh lên...";
+        if (files.length > 20) {
+            statusText.textContent = "Chỉ được chọn tối đa 20 ảnh.";
+            return;
+        }
 
-        const reader = new FileReader();
+        statusText.textContent = `Đang tải ${files.length} ảnh lên...`;
 
-        reader.onload = async function () {
+        let successCount = 0;
+        let failCount = 0;
+
+        for (const file of files) {
             try {
-                const base64 = reader.result.split(",")[1];
-                const fileName = `image/${Date.now()}_${file.name}`;
+                const base64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+
+                    reader.onload = function () {
+                        resolve(reader.result.split(",")[1]);
+                    };
+
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+
+                const fileName = `image/${Date.now()}_${Math.random().toString(36).slice(2)}_${file.name}`;
 
                 const response = await fetch(
                     `https://api.github.com/repos/${owner}/${repo}/contents/${fileName}`,
@@ -78,18 +94,26 @@ uploadBtn.addEventListener("click", async () => {
                 console.log("system result:", result);
 
                 if (response.ok) {
-                    statusText.textContent = "Tải ảnh thành công! Vui lòng đợi trong giây lát và trở lại.";
-                    uploadInput.value = "";
+                    successCount++;
                 } else {
-                    statusText.textContent = "Không thể tải ảnh lên. Vui lòng thử lại.";
+                    failCount++;
                 }
+
             } catch (error) {
                 console.error(error);
-                statusText.textContent = "Đã xảy ra lỗi khi xử lý ảnh.";
+                failCount++;
             }
-        };
+        }
 
-        reader.readAsDataURL(file);
+        if (successCount > 0) {
+            statusText.textContent =
+                `Tải thành công ${successCount} ảnh` +
+                (failCount > 0 ? `, lỗi ${failCount} ảnh.` : "!");
+            uploadInput.value = "";
+        } else {
+            statusText.textContent = "Không thể tải ảnh lên. Vui lòng thử lại.";
+        }
+
     } catch (error) {
         console.error(error);
         statusText.textContent = "Không thể khởi tạo hệ thống lúc này.";
