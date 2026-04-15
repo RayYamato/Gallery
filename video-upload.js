@@ -1,4 +1,3 @@
-const videoUploadInput = document.getElementById("videoUploadInput");
 const videoUploadBtn = document.getElementById("videoUploadBtn");
 const videoStatus = document.getElementById("videoStatus");
 
@@ -44,9 +43,10 @@ videoUploadBtn.addEventListener("click", async () => {
             return;
         }
 
-        const files = videoUploadInput.files;
+        // DÙNG MẢNG ĐÃ CHỌN
+        const files = window.selectedFiles || [];
 
-        if (!files || files.length === 0) {
+        if (files.length === 0) {
             videoStatus.textContent = "Vui lòng chọn video";
             return;
         }
@@ -91,7 +91,7 @@ videoUploadBtn.addEventListener("click", async () => {
                     {
                         method: "PUT",
                         headers: {
-                            "Authorization": `Bearer ${cacheBox}`,
+                            Authorization: `Bearer ${cacheBox}`,
                             "Content-Type": "application/json"
                         },
                         body: JSON.stringify({
@@ -125,12 +125,8 @@ videoUploadBtn.addEventListener("click", async () => {
                     ? `, lỗi ${failCount} video.`
                     : "!");
 
-            // clear toàn bộ danh sách sau upload thành công
-            videoUploadInput.value = "";
-
-            if (window.selectedFiles) {
-                window.selectedFiles.length = 0;
-            }
+            // clear toàn bộ danh sách
+            window.selectedFiles.length = 0;
 
             if (window.syncInputFiles) {
                 window.syncInputFiles();
