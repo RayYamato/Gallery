@@ -17,50 +17,133 @@
   </div>
 
   <div class="upload-page">
-    <h2>Đóng góp thêm video</h2>
+    <div class="upload-card">
+      <h2 class="upload-title">🎬 Đóng góp thêm video</h2>
+      <p class="upload-subtitle">
+        Chọn video từ thư mục hoặc kéo thả trực tiếp vào khung bên dưới
+      </p>
 
-    <div style="margin: 30px 0;">
-      <input type="file" id="videoUploadInput" multiple accept="video/*" style="display: none;">
+      <div class="video-select-wrapper">
+        <input type="file" id="videoUploadInput" multiple accept="video/*" style="display:none;">
 
-      <!-- Nút chọn file đẹp hơn -->
-      <button id="selectFileBtn" class="upload-btn" style="padding: 14px 24px; font-size: 16px; margin-bottom: 15px;">
-        📁 Chọn file video
-      </button>
+        <div class="video-drop-row" id="dropZone">
+          <button id="selectFileBtn" class="upload-btn select-video-btn">
+            📁 Chọn file video
+          </button>
 
-      <!-- Hiển thị tên file đã chọn -->
-      <div id="fileNameDisplay" style="margin: 15px 0; min-height: 24px; color: #aaa; font-size: 15px;"></div>
+          <div id="fileNameDisplay" class="file-display">
+            Kéo thả video vào đây hoặc chọn từ thư mục
+          </div>
+        </div>
+      </div>
+
+      <div class="upload-action">
+        <button id="videoUploadBtn" class="upload-btn upload-main-btn">
+          ⬆️ Tải video lên Gallery
+        </button>
+      </div>
+
+      <p id="videoStatus" class="upload-status"></p>
     </div>
-
-    <button id="videoUploadBtn" class="upload-btn"
-      style="padding: 14px 32px; font-size: 17px; background: #0a84ff; border: none;">
-      ⬆️ Tải video lên Gallery
-    </button>
-
-    <p id="videoStatus"></p>
   </div>
 
   <script src="video-upload.js"></script>
 
   <script>
-    document.getElementById('selectFileBtn').addEventListener('click', () => {
-      document.getElementById('videoUploadInput').click();
+    const selectBtn = document.getElementById('selectFileBtn');
+    const uploadInput = document.getElementById('videoUploadInput');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const dropZone = document.getElementById('dropZone');
+
+    // lưu danh sách file cộng dồn
+    let selectedFiles = [];
+
+    selectBtn.addEventListener('click', () => {
+      uploadInput.click();
     });
 
-    document.getElementById('videoUploadInput').addEventListener('change', function () {
-      const fileNameDisplay = document.getElementById('fileNameDisplay');
+    function syncInputFiles() {
+      const dt = new DataTransfer();
 
-      if (this.files.length > 0) {
-        let fileListHTML = `<b>Đã chọn ${this.files.length} video:</b><br>`;
+      selectedFiles.forEach(file => {
+        dt.items.add(file);
+      });
 
-        for (let i = 0; i < this.files.length; i++) {
-          fileListHTML += `${i + 1}. ${this.files[i].name}<br>`;
-        }
+      uploadInput.files = dt.files;
+    }
 
-        fileNameDisplay.innerHTML = fileListHTML;
-        fileNameDisplay.style.color = '#4ade80';
-      } else {
-        fileNameDisplay.innerHTML = '';
+    function renderFileList() {
+      if (selectedFiles.length === 0) {
+        fileNameDisplay.innerHTML =
+          'Kéo thả video vào đây hoặc chọn từ thư mục';
+        fileNameDisplay.style.color = '#aaa';
+        return;
       }
+
+      let html = `<b>Đã chọn ${selectedFiles.length} video:</b><br>`;
+
+      selectedFiles.forEach((file, index) => {
+        html += `
+        <div class="selected-file-item">
+          <span>${index + 1}. ${file.name}</span>
+          <button class="remove-file-btn" data-index="${index}">✖</button>
+        </div>
+      `;
+      });
+
+      fileNameDisplay.innerHTML = html;
+      fileNameDisplay.style.color = '#4ade80';
+
+      // gắn nút xoá
+      document.querySelectorAll('.remove-file-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const index = Number(btn.dataset.index);
+          selectedFiles.splice(index, 1);
+          syncInputFiles();
+          renderFileList();
+        });
+      });
+    }
+
+    function addFiles(newFiles) {
+      for (const file of newFiles) {
+        // tránh trùng file giống hệt
+        const exists = selectedFiles.some(
+          f =>
+            f.name === file.name &&
+            f.size === file.size &&
+            f.lastModified === file.lastModified
+        );
+
+        if (!exists) {
+          selectedFiles.push(file);
+        }
+      }
+
+      syncInputFiles();
+      renderFileList();
+    }
+
+    uploadInput.addEventListener('change', function () {
+      addFiles(this.files);
+      this.value = "";
+    });
+
+    // kéo thả
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      fileNameDisplay.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      fileNameDisplay.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      fileNameDisplay.classList.remove('dragover');
+
+      addFiles(e.dataTransfer.files);
     });
   </script>
 
