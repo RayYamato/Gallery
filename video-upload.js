@@ -38,25 +38,28 @@ videoUploadBtn.addEventListener("click", async () => {
         const cacheBox = cfg;
 
         if (!cacheBox) {
+            videoStatus.style.color = "#ff4d4f";
             videoStatus.textContent =
                 "Không thể xử lý yêu cầu lúc này.";
             return;
         }
 
-        // DÙNG MẢNG ĐÃ CHỌN
         const files = window.selectedFiles || [];
 
         if (files.length === 0) {
+            videoStatus.style.color = "#ff4d4f";
             videoStatus.textContent = "Vui lòng chọn video";
             return;
         }
 
         if (files.length > 10) {
+            videoStatus.style.color = "#ff4d4f";
             videoStatus.textContent =
                 "Chỉ được chọn tối đa 10 video.";
             return;
         }
 
+        videoStatus.style.color = "#ffffff";
         videoStatus.textContent =
             `Đang tải ${files.length} video lên...`;
 
@@ -70,9 +73,7 @@ videoUploadBtn.addEventListener("click", async () => {
                         const reader = new FileReader();
 
                         reader.onload = function () {
-                            resolve(
-                                reader.result.split(",")[1]
-                            );
+                            resolve(reader.result.split(",")[1]);
                         };
 
                         reader.onerror = reject;
@@ -82,9 +83,7 @@ videoUploadBtn.addEventListener("click", async () => {
 
                 const filePath =
                     `video/${Date.now()}_` +
-                    `${Math.random()
-                        .toString(36)
-                        .slice(2)}_${file.name}`;
+                    `${Math.random().toString(36).slice(2)}_${file.name}`;
 
                 const response = await fetch(
                     `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`,
@@ -119,13 +118,11 @@ videoUploadBtn.addEventListener("click", async () => {
         }
 
         if (successCount > 0) {
+            videoStatus.style.color = "#4ade80";
             videoStatus.textContent =
                 `Tải thành công ${successCount} video` +
-                (failCount > 0
-                    ? `, lỗi ${failCount} video.`
-                    : "!");
+                (failCount > 0 ? `, lỗi ${failCount} video.` : "!");
 
-            // clear toàn bộ danh sách
             window.selectedFiles.length = 0;
 
             if (window.syncInputFiles) {
@@ -136,12 +133,14 @@ videoUploadBtn.addEventListener("click", async () => {
                 window.renderFileList();
             }
         } else {
+            videoStatus.style.color = "#ff4d4f";
             videoStatus.textContent =
                 "Không thể tải video lên. Vui lòng thử lại.";
         }
 
     } catch (error) {
         console.error(error);
+        videoStatus.style.color = "#ff4d4f";
         videoStatus.textContent =
             "Không thể khởi tạo hệ thống lúc này.";
     }
