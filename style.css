@@ -2,6 +2,10 @@
    BASE
 ========================= */
 
+*{
+    box-sizing:border-box;
+}
+
 body{
     margin:0;
     padding:20px;
@@ -125,13 +129,13 @@ body{
 }
 
 /* =========================
-   UPLOAD LAYOUT (FIXED)
+   UPLOAD LAYOUT
 ========================= */
 
 .upload-page{
     display:flex;
     justify-content:center;
-    align-items:flex-start;   
+    align-items:flex-start;
     min-height:100vh;
     padding:40px 30px;
 }
@@ -161,7 +165,7 @@ body{
 }
 
 /* =========================
-   VIDEO SELECT AREA
+   SELECT AREA
 ========================= */
 
 .video-select-wrapper{
@@ -225,7 +229,10 @@ body{
     color:#4ade80;
 }
 
-/* mỗi file item */
+/* =========================
+   FILE ITEM
+========================= */
+
 .selected-file-item{
     width:100%;
     display:flex;
@@ -253,7 +260,7 @@ body{
 }
 
 /* =========================
-   UPLOAD ACTION
+   ACTION
 ========================= */
 
 .upload-action{
@@ -280,4 +287,50 @@ body{
     text-align:center;
     font-size:15px;
     color:#4ade80;
+}
+
+/* =========================
+   MOBILE RESPONSIVE
+========================= */
+
+@media (max-width:768px){
+
+    .upload-page{
+        padding:20px 14px;
+    }
+
+    .upload-card{
+        padding:20px;
+        border-radius:14px;
+    }
+
+    .upload-title{
+        font-size:24px;
+    }
+
+    .upload-subtitle{
+        font-size:14px;
+        margin:10px 0 20px;
+    }
+
+    .video-drop-row{
+        flex-direction:column;
+        align-items:stretch;
+        gap:14px;
+    }
+
+    .select-video-btn{
+        width:100%;
+        min-width:unset;
+    }
+
+    .file-display{
+        min-height:70px;
+        max-height:180px;
+        width:100%;
+    }
+
+    .upload-main-btn{
+        width:100%;
+    }
 }
